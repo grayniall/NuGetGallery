@@ -641,7 +641,7 @@ namespace NuGetGallery
             public async Task WillThrowIfAPackageWithTheIdAndNuGetVersionDoesNotExist()
             {
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns((Package)null);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns((Package)null);
                 controller.SetCurrentUser(new User());
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
@@ -664,7 +664,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(notOwner);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
 
@@ -689,7 +689,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(owner, apiKeyScope);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true))
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42"))
                     .Returns(package);
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
@@ -719,7 +719,7 @@ namespace NuGetGallery
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                     };
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 controller.SetCurrentUser(owner);
 
                 ResultAssert.IsEmpty(await controller.DeletePackage("theId", "1.0.42"));
@@ -758,7 +758,7 @@ namespace NuGetGallery
                 var actionResult = new RedirectResult("http://foo");
 
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, false)).Returns((Package)null).Verifiable();
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false)).Returns((Package)null).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
@@ -854,7 +854,7 @@ namespace NuGetGallery
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, "", false)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(packageId, string.Empty, SemVerLevelKey.SemVer2, false)).Returns(package);
                 //controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
@@ -893,7 +893,7 @@ namespace NuGetGallery
                 var package = new Package();
                 var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Throws(new DataException("Oh noes, database broken!"));
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false)).Throws(new DataException("Oh noes, database broken!"));
  		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                              .Returns(Task.FromResult<ActionResult>(actionResult))
                              .Verifiable();
@@ -930,7 +930,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns((Package)null);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns((Package)null);
                 controller.SetCurrentUser(new User());
 
                 // Act
@@ -955,7 +955,7 @@ namespace NuGetGallery
                     };
 
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("theId", "1.0.42", true)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
                 controller.SetCurrentUser(owner);
 
                 // Act
@@ -981,7 +981,7 @@ namespace NuGetGallery
                 };
 
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 controller.SetCurrentUser(owner);
 
                 // Act
@@ -1026,7 +1026,7 @@ namespace NuGetGallery
 
                 var id = package?.PackageRegistration?.Id ?? "foo";
                 var version = package?.Version ?? "1.0.0";
-                controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion(id, version, true)).Returns(package);
+                controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersionStrict(id, version)).Returns(package);
 
                 controller.SetCurrentUser(user, scopes);
 
